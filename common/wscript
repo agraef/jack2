@@ -37,9 +37,13 @@ def create_jack_process_obj(bld, target, sources, uselib = None):
     if bld.env['IS_LINUX']:
         process.env.append_value("CPPFLAGS", "-fvisibility=hidden")
     if bld.env['IS_MACOSX']:
-        process.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+        process.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
         #process.env.append_value("LINKFLAGS", "-arch i386 -arch ppc -arch x86_64")
         process.env.append_value("CPPFLAGS", "-fvisibility=hidden")
+        # XXXFIXME: Apparently Jack still needs the legacy libstdc++ on OSX.
+        # libc++ is the default on OSX 10.9 and later, but Jack gives a bunch
+        # of linker errors with it, so make sure that we use libstdc++ instead.
+        process.env.append_value("LINKFLAGS", "-stdlib=libstdc++")
     process.install_path = '${ADDON_DIR}/'
     process.use = [uselib.name]
     return process
@@ -115,6 +119,7 @@ def build(bld):
             '../posix/JackPosixThread.cpp',
             '../macosx/JackMachThread.cpp',
             '../macosx/JackMachSemaphore.cpp',
+            '../posix/JackPosixMutex.cpp',
             '../posix/JackSocket.cpp',
             '../macosx/JackMachTime.c',
             ]
@@ -185,10 +190,12 @@ def build(bld):
 
     if bld.env['IS_MACOSX']:
         clientlib.env.append_value("CPPFLAGS", "-fvisibility=hidden")
-        clientlib.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+        clientlib.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
         #clientlib.env.append_value("LINKFLAGS", "-framework CoreAudio -framework vecLib -single_module -arch i386 -arch ppc -arch x86_64"
-        clientlib.env.append_value("LINKFLAGS", "-framework CoreAudio -framework vecLib -single_module")
-        clientlib.env.append_value("LINKFLAGS", "-compatibility_version 1 -current_version 1")
+        clientlib.env.append_value("LINKFLAGS", ["-framework", "CoreAudio", "-framework", "vecLib", "-single_module"])
+        clientlib.env.append_value("LINKFLAGS", ["-compatibility_version", "1", "-current_version", "1"])
+        # XXXFIXME: Apparently Jack still needs the legacy libstdc++ on OSX.
+        clientlib.env.append_value("LINKFLAGS", "-stdlib=libstdc++")
 
     if bld.env['IS_SUN']:
         clientlib.env.append_value("LINKFLAGS", "-lnsl -lsocket")
@@ -285,10 +292,12 @@ def build(bld):
 
     if bld.env['IS_MACOSX']:
         serverlib.env.append_value("CPPFLAGS", "-fvisibility=hidden")
-        serverlib.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+        serverlib.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
         #serverlib.env.append_value("LINKFLAGS", "-framework CoreAudio -framework vecLib -single_module -arch i386 -arch ppc -arch x86_64")
-        serverlib.env.append_value("LINKFLAGS", "-framework CoreAudio -framework CoreFoundation -framework vecLib -single_module")
-        serverlib.env.append_value("LINKFLAGS", "-compatibility_version 1 -current_version 1")
+        serverlib.env.append_value("LINKFLAGS", ["-framework", "CoreAudio", "-framework", "CoreFoundation", "-framework", "vecLib", "-single_module"])
+        serverlib.env.append_value("LINKFLAGS", ["-compatibility_version", "1", "-current_version", "1"])
+        # XXXFIXME: Apparently Jack still needs the legacy libstdc++ on OSX.
+        serverlib.env.append_value("LINKFLAGS", "-stdlib=libstdc++")
 
     if bld.env['IS_SUN']:
         serverlib.env.append_value("LINKFLAGS", "-lnsl -lsocket")
@@ -304,7 +313,8 @@ def build(bld):
              netlib.install_path = '${BINDIR}'
              netlib.use += ['WS2_32', 'WINMM']
         else:
-             netlib.use += ['RT']
+             if not bld.env['IS_MACOSX']:
+                  netlib.use += ['RT']
              netlib.install_path = '${LIBDIR}'
         netlib.source = [
             'JackNetAPI.cpp',
@@ -328,7 +338,7 @@ def build(bld):
 
         if bld.env['IS_MACOSX']:
             netlib.source += ['../posix/JackNetUnixSocket.cpp','../posix/JackPosixThread.cpp', '../posix/JackPosixMutex.cpp', '../macosx/JackMachThread.cpp', '../macosx/JackMachTime.c']
-            netlib.env.append_value("LINKFLAGS", "-framework CoreAudio -single_module")
+            netlib.env.append_value("LINKFLAGS", ["-framework", "CoreAudio", "-single_module"])
 
         if bld.env['IS_WINDOWS']:
             netlib.source += ['../windows/JackNetWinSocket.cpp','../windows/JackWinThread.cpp', '../windows/JackMMCSS.cpp', '../windows/JackWinTime.c']
@@ -362,8 +372,8 @@ def build(bld):
     if bld.env['BUILD_ADAPTER'] and bld.env['IS_MACOSX']:
          audio_adapter_sources += ['../macosx/coreaudio/JackCoreAudioAdapter.cpp']
          process = create_jack_process_obj(bld, 'audioadapter', audio_adapter_sources, serverlib)
-         process.env.append_value("LINKFLAGS", "-framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework CoreServices")
-         process.use = 'SAMPLERATE'
+         process.env.append_value("LINKFLAGS", ["-framework", "CoreAudio", "-framework", "AudioUnit", "-framework", "AudioToolbox", "-framework", "CoreServices"])
+         process.use += ['SAMPLERATE']
 
     if bld.env['BUILD_ADAPTER'] and bld.env['IS_LINUX'] and bld.env['BUILD_DRIVER_ALSA']:
          audio_adapter_sources += ['../linux/alsa/JackAlsaAdapter.cpp']

@@ -70,7 +70,7 @@ def build(bld):
         prog.source = example_program_source
         prog.use = use
         if bld.env['IS_MACOSX']:
-            prog.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+            prog.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
             #prog.env.append_value("LINKFLAGS", "-arch i386 -arch ppc -arch x86_64")
             prog.env.append_value("LINKFLAGS", "")
         if bld.env['IS_LINUX']:
@@ -86,7 +86,7 @@ def build(bld):
         prog.source = 'transport.c'
         prog.use = ['clientlib']
         if bld.env['IS_MACOSX']:
-            prog.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+            prog.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
             #prog.env.append_value("LINKFLAGS", "-arch i386 -arch ppc -arch x86_64")
             prog.env.append_value("LINKFLAGS", "")
         if bld.env['IS_LINUX']:
@@ -103,7 +103,7 @@ def build(bld):
         prog.source = 'capture_client.c'
         prog.use = ['clientlib']
         if bld.env['IS_MACOSX']:
-            prog.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+            prog.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
             #prog.env.append_value("LINKFLAGS", "-arch i386 -arch ppc -arch x86_64")
             prog.env.append_value("LINKFLAGS", "")
             prog.use += ['SNDFILE']
@@ -147,7 +147,7 @@ def build(bld):
         lib.target = example_lib
         lib.source = example_lib_source
         if bld.env['IS_MACOSX']:
-            lib.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4 -arch i386 -arch ppc -arch x86_64")
+            lib.env.append_value("CPPFLAGS", "-mmacosx-version-min=10.4")
             #lib.env.append_value("LINKFLAGS", "-arch i386 -arch ppc -arch x86_64")
             lib.env.append_value("LINKFLAGS", "")
         if bld.env['IS_SUN']:
