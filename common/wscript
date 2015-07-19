@@ -339,6 +339,9 @@ def build(bld):
         if bld.env['IS_MACOSX']:
             netlib.source += ['../posix/JackNetUnixSocket.cpp','../posix/JackPosixThread.cpp', '../posix/JackPosixMutex.cpp', '../macosx/JackMachThread.cpp', '../macosx/JackMachTime.c']
             netlib.env.append_value("LINKFLAGS", ["-framework", "CoreAudio", "-single_module"])
+            # XXXFIXME: looks like this one needs libc++, this might introduce
+            # incompatibilities with other parts of the library!
+            netlib.env.append_value("LINKFLAGS", "-stdlib=libc++")
 
         if bld.env['IS_WINDOWS']:
             netlib.source += ['../windows/JackNetWinSocket.cpp','../windows/JackWinThread.cpp', '../windows/JackMMCSS.cpp', '../windows/JackWinTime.c']
